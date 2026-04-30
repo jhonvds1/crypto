@@ -2,11 +2,13 @@ import requests
 import json
 import logging
 import os
+from datetime import datetime, timezone
+from google.cloud import bigquery
+
 
 BASE = "https://api.coingecko.com/api/v3"
 
 # Pasta onde os JSONs extraídos serão salvos
-OUTPUT_DIR = "data/raw"
 
 # Configuração do logger padrão do módulo de extração
 logging.basicConfig(
@@ -16,13 +18,36 @@ logging.basicConfig(
 logger_extract = logging.getLogger("EXTRACT")
 
 
-def save_json(data: dict | list, filename: str) -> None:
+def load_bq(data: dict | list, filename: str) -> None:
     """Salva um dicionário ou lista como arquivo JSON na pasta de saída."""
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    filepath = os.path.join(OUTPUT_DIR, filename)
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    logger_extract.info("Arquivo salvo: %s", filepath)
+
+    ingestion_date = datetime.now(timezone.utc).isoformat()
+
+    table_id = f"coingecko-494900.bronze.{filename}"
+
+    logger_extract.info("Iniciando carga de : %s", table_id)
+
+    client = bigquery.Client()
+
+    job_config = bigquery.LoadJobConfig(
+        autodetect = True,
+        write_disposition = "WRITE_TRUNCATE"
+    )
+
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                item['ingested_at'] = ingestion_date
+    elif isinstance(data, dict):
+                data['ingested_at'] = ingestion_date
+
+    if isinstance(data, list):
+        job = client.load_table_from_json(data, table_id, job_config=job_config)
+    else:
+        job = client.load_table_from_json([data], table_id, job_config=job_config)
+
+    job.result()
+    logger_extract.info("Tabela salva: %s", table_id)
 
 
 def extract_crypto_list(base: str) -> None:
@@ -34,7 +59,7 @@ def extract_crypto_list(base: str) -> None:
         data = response.json()
         response.raise_for_status()
         data = response.json()
-        save_json(data, "crypto_list.json")
+        load_bq(data, "crypto_list")
         logger_extract.info("Extração concluída: crypto_list (%d itens)", len(data))
     except requests.exceptions.HTTPError as e:
         logger_extract.error("Erro HTTP em extract_crypto_list: %s", e)
@@ -60,7 +85,7 @@ def extract_current_market(base: str) -> None:
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        save_json(data, "current_market.json")
+        load_bq(data, "current_market")
         logger_extract.info("Extração concluída: current_market (%d itens)", len(data))
     except requests.exceptions.HTTPError as e:
         logger_extract.error("Erro HTTP em extract_current_market: %s", e)
@@ -90,7 +115,7 @@ def extract_price_history(base: str, coin_id: str) -> None:
         response.raise_for_status()
         data = response.json()
         # Nome do arquivo inclui o coin_id para evitar sobrescrever dados de outras moedas
-        save_json(data, f"price_history_{coin_id}.json")
+        load_bq(data, f"price_history_{coin_id}")
         logger_extract.info("Extração concluída: price_history | coin=%s", coin_id)
     except requests.exceptions.HTTPError as e:
         logger_extract.error("Erro HTTP em extract_price_history (%s): %s", coin_id, e)
@@ -110,7 +135,7 @@ def extract_overview(base: str) -> None:
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        save_json(data, "overview.json")
+        load_bq(data, "overview")
         logger_extract.info("Extração concluída: overview")
     except requests.exceptions.HTTPError as e:
         logger_extract.error("Erro HTTP em extract_overview: %s", e)
@@ -130,7 +155,7 @@ def extract_trending(base: str) -> None:
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        save_json(data, "trending.json")
+        load_bq(data, "trending")
         logger_extract.info("Extração concluída: trending")
     except requests.exceptions.HTTPError as e:
         logger_extract.error("Erro HTTP em extract_trending: %s", e)
@@ -155,8 +180,11 @@ def extract_coin_details(base: str, coin_id: str) -> None:
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        save_json(data, f"coin_details_{coin_id}.json")
+        load_bq(data, f"coin_details_{coin_id}")
         logger_extract.info("Extração concluída: coin_details | coin=%s", coin_id)
+
+        logger_extract.info("Selecionando campos: coin_details | coin=%s", coin_id)
+
     except requests.exceptions.HTTPError as e:
         logger_extract.error("Erro HTTP em extract_coin_details (%s): %s", coin_id, e)
     except requests.exceptions.ConnectionError:
@@ -179,7 +207,7 @@ def extract_simple_price(base: str) -> None:
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        save_json(data, "simple_price.json")
+        load_bq(data, "simple_price")
         logger_extract.info("Extração concluída: simple_price")
     except requests.exceptions.HTTPError as e:
         logger_extract.error("Erro HTTP em extract_simple_price: %s", e)
@@ -194,13 +222,12 @@ def extract_simple_price(base: str) -> None:
 def main_extract():
     """Executa todas as extrações em sequência e salva os resultados em JSON."""
     base = BASE
-    logger_extract.info("Extração iniciada | output_dir=%s", os.path.abspath(OUTPUT_DIR))
+    logger_extract.info("Extração iniciada")
 
     extract_crypto_list(base)
     extract_current_market(base)
     extract_overview(base)
     extract_trending(base)
-    extract_coin_details(base, "bitcoin")
     extract_simple_price(base)
 
     logger_extract.info("Extração finalizada com sucesso")
