@@ -1,1 +1,0 @@
-select * from bronze.simple_price
