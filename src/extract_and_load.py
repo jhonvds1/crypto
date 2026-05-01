@@ -224,11 +224,8 @@ def main_extract():
     base = BASE
     logger_extract.info("Extração iniciada")
 
-    extract_crypto_list(base)
     extract_current_market(base)
-    extract_overview(base)
     extract_trending(base)
-    extract_simple_price(base)
 
     logger_extract.info("Extração finalizada com sucesso")
 
