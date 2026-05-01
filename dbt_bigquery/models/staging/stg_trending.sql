@@ -1,9 +1,20 @@
-WITH source AS (
-    SELECT * FROM {{source('raw', 'trending')}}
+with source as (
+
+    select * from {{ source('raw', 'trending') }}
+
 ),
 
-RENAMED AS (
-    -- transform
+unnested as (
+
+    select
+        ingested_at,
+        coin.item.id    as id,
+        coin.item.name  as name,
+        coin.item.score as score
+
+    from source,
+    unnest(coins) as coin
+
 )
 
-SELECT * FROM RENAMED
+select * from unnested

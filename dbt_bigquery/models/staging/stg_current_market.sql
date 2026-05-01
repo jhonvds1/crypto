@@ -3,7 +3,16 @@ WITH source AS (
 ),
 
 RENAMED AS (
-    -- transform
+    SELECT
+        id,
+        name,
+        market_cap,
+        current_price,
+        market_cap_rank,
+        total_volume,
+        last_updated,
+        price_change_percentage_24h
+    FROM source
 )
 
 SELECT * FROM RENAMED
