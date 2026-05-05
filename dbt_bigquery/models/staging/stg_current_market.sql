@@ -27,6 +27,7 @@ RENAMED AS (
         price_change_percentage_24h
     FROM deduplicated
     WHERE id IS NOT NULL 
+    AND last_updated IS NOT NULL
     AND current_price >= 0.0
 )
 
