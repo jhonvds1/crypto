@@ -13,21 +13,21 @@ deduplicated AS(
         WHERE id IS NOT NULL
     )
     WHERE rn = 1
-)
+),
 
 RENAMED AS (
     SELECT
-        TRIM(id),
-        INITCAP(TRIM(name)),
-        CAST(market_cap, INT64),
+        TRIM(id) AS id,
+        INITCAP(TRIM(name)) AS name,
+        CAST(market_cap AS INT64) AS market_cap,
         current_price,
         market_cap_rank,
-        CAST(total_volume, INT64),
-        DATE(last_updated),
+        CAST(total_volume AS INT64) AS total_volume,
+        DATE(last_updated) AS last_updated,
         price_change_percentage_24h
-    FROM source
+    FROM deduplicated
     WHERE id IS NOT NULL 
     AND current_price >= 0.0
 )
 
-SELECT * FROM deduplicated
+SELECT * FROM RENAMED

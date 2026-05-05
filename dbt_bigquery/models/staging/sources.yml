@@ -5,10 +5,7 @@ sources:
     database: coingecko-494900
     schema: bronze
     tables:
-      - name: crypto_list
       - name: current_market
-      - name: overview
-      - name: simple_price
       - name: trending
 
 
