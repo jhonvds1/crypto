@@ -23,11 +23,19 @@ def load_bq(data: dict | list, filename: str) -> None:
 
     ingestion_date = datetime.now(timezone.utc).isoformat()
 
+    dataset_id = "coingecko-494900.bronze"
+
+    dataset = bigquery.Dataset(dataset_id)
+
+    dataset.location = "US"
+
     table_id = f"coingecko-494900.bronze.{filename}"
 
     logger_extract.info("Iniciando carga de : %s", table_id)
 
     client = bigquery.Client()
+
+    client.create_dataset(dataset, exists_ok=True)
 
     job_config = bigquery.LoadJobConfig(
         autodetect = True,
