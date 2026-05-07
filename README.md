@@ -88,13 +88,13 @@ coin_gecko/
 ```
 
 ## 🔄 Como o pipeline funciona  
-1. Extração de dados (ETL Python)  
+### 1. Extração de dados (ETL Python)  
 Consome API da CoinGecko  
 Extrai market data, trending e histórico  
 Adiciona timestamp de ingestão  
 Envia para o BigQuery (raw layer)  
 
-2. Orquestração com Airflow  
+### 2. Orquestração com Airflow  
 Task 1: extract_load_bq  
 Executa container Python  
 Extrai dados da API  
@@ -105,7 +105,7 @@ Cria staging, dimensões e fatos
 
 extract_load_bq → dbt_run
 
-3. Transformação com dbt  
+### 3. Transformação com dbt  
 📌 Staging  
 limpeza  
 padronização  
@@ -118,34 +118,34 @@ fact_current_market
 métricas financeiras e de mercado  
 
 ## 🐳 Como executar o projeto
-1. Clonar repositório
+### 1. Clonar repositório
 
 git clone https://github.com/jhonvds1/crypto.git
 
 cd crypto
 
-2. Credenciais BigQuery
+### 2.  Credenciais BigQuery  
 Colocar service account em:
 
 credentials/bigquery_key.json
 
-3. Build ETL
+### 3. Build ETL
 
 docker build -t extract_and_load:1.5 .
 
-4. Build dbt
+### 4. Build dbt
 docker build -t dbt_coin:1.2 .
 
-5. Subir Airflow
+### 5. Subir Airflow
 docker-compose up -d
 
-6. Acessar UI
+### 6. Acessar UI
 http://localhost:8080/
 
 Ativar DAG:
 coin_gecko
+### 7. Execução
 
-7. Execução
 
 Roda a cada:
 */15 minutos
