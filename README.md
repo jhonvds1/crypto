@@ -87,35 +87,35 @@ coin_gecko/
 
 ```
 
-🔄 Como o pipeline funciona
-1. Extração de dados (ETL Python)
-Consome API da CoinGecko
-Extrai market data, trending e histórico
-Adiciona timestamp de ingestão
-Envia para o BigQuery (raw layer)
+🔄 Como o pipeline funciona  
+1. Extração de dados (ETL Python)  
+Consome API da CoinGecko  
+Extrai market data, trending e histórico  
+Adiciona timestamp de ingestão  
+Envia para o BigQuery (raw layer)  
 
-2. Orquestração com Airflow
-Task 1: extract_load_bq
-Executa container Python
-Extrai dados da API
-Carrega no BigQuery
-Task 2: dbt_run
-Executa transformações dbt
-Cria staging, dimensões e fatos
+2. Orquestração com Airflow  
+Task 1: extract_load_bq  
+Executa container Python  
+Extrai dados da API  
+Carrega no BigQuery  
+Task 2: dbt_run  
+Executa transformações dbt  
+Cria staging, dimensões e fatos  
 
 extract_load_bq → dbt_run
 
-3. Transformação com dbt
-📌 Staging
-limpeza
-padronização
-deduplicação
-📌 Dimensões
-dim_time
-dim_crypto
-📌 Fact
-fact_current_market
-métricas financeiras e de mercado
+3. Transformação com dbt  
+📌 Staging  
+limpeza  
+padronização  
+deduplicação  
+📌 Dimensões  
+dim_time  
+dim_crypto  
+📌 Fact  
+fact_current_market  
+métricas financeiras e de mercado  
 
 🐳 Como executar o projeto
 1. Clonar repositório
@@ -150,10 +150,10 @@ coin_gecko
 Roda a cada:
 */15 minutos
 
-📊 Camadas de dados
-🟤 Bronze: dados brutos da API
-⚪ Silver: staging (limpeza e tratamento)
-🟡 Gold: modelos analíticos (dimensões e fatos)
+📊 Camadas de dados  
+🟤 Bronze: dados brutos da API  
+⚪ Silver: staging (limpeza e tratamento)  
+🟡 Gold: modelos analíticos (dimensões e fatos)  
 
 📈 BI (em desenvolvimento)
 
@@ -172,29 +172,29 @@ variação 24h
 
 💡 Por que esse projeto importa?
 
-Demonstra habilidades de:
+Demonstra habilidades de:  
 
-pipelines end-to-end
-Airflow
-dbt
-SQL analítico
-modelagem estrela
-Docker
-integração com cloud (BigQuery)
+pipelines end-to-end  
+Airflow  
+dbt  
+SQL analítico  
+modelagem estrela  
+Docker  
+integração com cloud (BigQuery)  
 
-🔥 Melhorias futuras
-retries no Airflow
-secrets manager (GCP)
-testes dbt (not_null, unique)
-CI/CD (GitHub Actions)
-data quality checks
-deploy cloud (Composer)
+🔥 Melhorias futuras  
+retries no Airflow  
+secrets manager (GCP)  
+testes dbt (not_null, unique)  
+CI/CD (GitHub Actions)  
+data quality checks  
+deploy cloud (Composer)  
 
 👨‍💻 Autor
 
-Jonatha Viegas da Silva
-Engenharia de Computação - UFPel
-Data Engineer
+Jonatha Viegas da Silva  
+Engenharia de Computação - UFPel  
+Data Engineer  
 GitHub: https://github.com/jhonvds1
 
 
