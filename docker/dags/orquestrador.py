@@ -33,3 +33,24 @@ with DAG(
 
         mount_tmp_dir=False
     )
+
+    dbt_run = DockerOperator(
+        task_id='dbt_run',
+        image='dbt_coin:1.2',
+        command='dbt run',
+        docker_url='unix://var/run/docker.sock',
+        network_mode='bridge',
+        auto_remove='success',
+
+        mounts=[
+            Mount(
+                source='/home/jhon/eng_dados_estudos/coin/credentials',
+                target='/credentials',
+                type='bind'
+            )
+        ],
+
+        mount_tmp_dir=False
+    )
+
+    extract_load_bq >> dbt_run

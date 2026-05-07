@@ -1,0 +1,11 @@
+FROM python:3.11-slim
+
+RUN pip install dbt-bigquery
+
+WORKDIR /dbt
+
+COPY dbt_bigquery .
+
+VOLUME ["/credentials"]
+
+CMD ["dbt", "run"]
