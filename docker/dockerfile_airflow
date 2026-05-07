@@ -1,11 +1,22 @@
+# Imagem base leve do Python 3.11 (versão slim reduz tamanho do container)
 FROM python:3.11-slim
 
+# Instala o dbt com suporte ao BigQuery
+# Isso instala o CLI do dbt + adapter do BigQuery
 RUN pip install dbt-bigquery
 
+# Define o diretório de trabalho dentro do container
+# Tudo será executado dentro de /dbt
 WORKDIR /dbt
 
+# Copia o projeto dbt local para dentro do container
+# (diretório que contém dbt_project.yml, models, etc.)
 COPY dbt_bigquery .
 
+# Declara um volume externo para credenciais
+# Normalmente usado para montar service account do GCP
 VOLUME ["/credentials"]
 
+# Comando padrão ao iniciar o container
+# Executa o pipeline dbt (modelos, transformações, etc.)
 CMD ["dbt", "run"]
