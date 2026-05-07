@@ -47,7 +47,7 @@ Fact Table (current_market)
 Dashboard (Power BI / Tableau - em definição)
 ```
 
-⚙️ Tecnologias utilizadas  
+## ⚙️ Tecnologias utilizadas  
 Python 3.11  
 Apache Airflow  
 Docker  
@@ -87,7 +87,7 @@ coin_gecko/
 
 ```
 
-🔄 Como o pipeline funciona  
+## 🔄 Como o pipeline funciona  
 1. Extração de dados (ETL Python)  
 Consome API da CoinGecko  
 Extrai market data, trending e histórico  
@@ -117,7 +117,7 @@ dim_crypto
 fact_current_market  
 métricas financeiras e de mercado  
 
-🐳 Como executar o projeto
+## 🐳 Como executar o projeto
 1. Clonar repositório
 
 git clone https://github.com/jhonvds1/crypto.git
@@ -150,12 +150,12 @@ coin_gecko
 Roda a cada:
 */15 minutos
 
-📊 Camadas de dados  
+## 📊 Camadas de dados  
 🟤 Bronze: dados brutos da API  
 ⚪ Silver: staging (limpeza e tratamento)  
 🟡 Gold: modelos analíticos (dimensões e fatos)  
 
-📈 BI (em desenvolvimento)
+## 📈 BI (em desenvolvimento)
 
 Ferramenta a definir:
 
@@ -170,7 +170,7 @@ trending coins
 volume
 variação 24h
 
-💡 Por que esse projeto importa?
+## 💡 Por que esse projeto importa?
 
 Demonstra habilidades de:  
 
@@ -182,7 +182,7 @@ modelagem estrela
 Docker  
 integração com cloud (BigQuery)  
 
-🔥 Melhorias futuras  
+## 🔥 Melhorias futuras  
 retries no Airflow  
 secrets manager (GCP)  
 testes dbt (not_null, unique)  
@@ -190,7 +190,7 @@ CI/CD (GitHub Actions)
 data quality checks  
 deploy cloud (Composer)  
 
-👨‍💻 Autor
+## 👨‍💻 Autor
 
 Jonatha Viegas da Silva  
 Engenharia de Computação - UFPel  
@@ -198,6 +198,6 @@ Data Engineer
 GitHub: https://github.com/jhonvds1
 
 
-⭐ Conclusão
+## ⭐ Conclusão
 
 Pipeline completo de engenharia de dados do zero até camada analítica pronta para BI.
