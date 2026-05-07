@@ -58,11 +58,8 @@ CoinGecko API
 SQL (BigQuery Standard SQL)  
 
 ```
-coin_gecko/
+crypto/
 │
-├── airflow/
-│   └── dags/
-│       └── coin_gecko_dag.py
 │
 ├── src/
 │   └── extract_and_load.py
@@ -76,13 +73,18 @@ coin_gecko/
 │       └── fact_current_market.sql
 │
 ├── docker/
-│   ├── Dockerfile (ETL)
-│   └── Dockerfile (dbt)
+|   ├──config/
+│   ├── Dockerfile (Extract e Load)
+│   ├── Dockerfile_airflow (DBT)
+|   └── dags/
+|       └── orquestrador.py (DAG do airflow)
 │
 ├── credentials/
 │   └── bigquery_key.json
 │
+├── diagrama.png
 ├── requirements.txt
+├── .gitignore
 └── README.md
 
 ```
@@ -95,25 +97,25 @@ Adiciona timestamp de ingestão
 Envia para o BigQuery (raw layer)  
 
 ### 2. Orquestração com Airflow  
-Task 1: extract_load_bq  
+### Task 1: extract_load_bq  
 Executa container Python  
 Extrai dados da API  
 Carrega no BigQuery  
-Task 2: dbt_run  
+### Task 2: dbt_run  
 Executa transformações dbt  
 Cria staging, dimensões e fatos  
 
 extract_load_bq → dbt_run
 
 ### 3. Transformação com dbt  
-📌 Staging  
+#### 📌 Staging  
 limpeza  
 padronização  
 deduplicação  
-📌 Dimensões  
+#### 📌 Dimensões  
 dim_time  
 dim_crypto  
-📌 Fact  
+#### 📌 Fact  
 fact_current_market  
 métricas financeiras e de mercado  
 
