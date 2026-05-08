@@ -71,6 +71,34 @@ def load_bq(data: dict | list, filename: str) -> None:
 
     logger_extract.info("Tabela salva: %s", table_id)
 
+def last_30_days(moeda: str):
+    dias = 30
+    moeda_fiat = "usd"
+    url = (
+        f"https://api.coingecko.com/api/v3/coins/"
+        f"{moeda}/market_chart"
+        f"?vs_currency={moeda_fiat}&days={dias}"
+    )   
+
+    response = requests.get(url)
+
+    data = response.json()
+
+    history = []
+
+    days_gone = set()
+
+    for timestamp, price in data["prices"]:
+        data_obj = datetime.fromtimestamp(timestamp / 1000)
+        day = data_obj.strftime("%d-%m-%Y")
+
+        if day not in days_gone:
+            days_gone.add(day)
+
+            history.append({
+                "data": day,
+                "preco_usd": round(price, 2)
+            })
 
 def extract_crypto_list(base: str) -> None:
     """Extrai lista de todas as criptomoedas disponíveis na CoinGecko."""
