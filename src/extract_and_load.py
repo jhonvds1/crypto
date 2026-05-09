@@ -72,33 +72,85 @@ def load_bq(data: dict | list, filename: str) -> None:
     logger_extract.info("Tabela salva: %s", table_id)
 
 def last_30_days(moeda: str):
+    """
+    Busca o histórico dos últimos 30 dias de uma criptomoeda via CoinGecko API.
+
+    Args:
+        moeda (str): ID da criptomoeda na CoinGecko (ex: "bitcoin", "ethereum").
+
+    Returns:
+        list[dict]: Lista com um registro por dia contendo:
+                    - 'data' (str): data no formato DD-MM-YYYY
+                    - 'preco_usd' (float): preço de fechamento do dia em USD
+                    - 'market_cap' (float): capitalização de mercado em USD
+                    - 'volume' (float): volume negociado em USD
+                    Retorna lista vazia em caso de erro.
+    """
     dias = 30
     moeda_fiat = "usd"
+
+    # Monta a URL da CoinGecko para o endpoint de histórico de mercado
     url = (
         f"https://api.coingecko.com/api/v3/coins/"
         f"{moeda}/market_chart"
         f"?vs_currency={moeda_fiat}&days={dias}"
-    )   
+    )
 
-    response = requests.get(url)
+    try:
+        response = requests.get(url, timeout=10)
 
-    data = response.json()
+        # Lança exceção para status HTTP de erro (4xx, 5xx)
+        response.raise_for_status()
 
-    history = []
+        data = response.json()
 
-    days_gone = set()
+        # Valida se todos os campos esperados estão presentes na resposta
+        for campo in ("prices", "market_caps", "total_volumes"):
+            if campo not in data:
+                raise ValueError(f"Campo ausente na resposta da API: '{campo}' — {data}")
 
-    for timestamp, price in data["prices"]:
-        data_obj = datetime.fromtimestamp(timestamp / 1000)
-        day = data_obj.strftime("%d-%m-%Y")
+        history = []
+        days_gone = set()  # Controla dias já registrados para evitar duplicatas
 
-        if day not in days_gone:
-            days_gone.add(day)
+        # Agrupa os três campos por índice — a API garante mesma ordem e tamanho
+        for (timestamp, price), (_, market_cap), (_, volume) in zip(
+            data["prices"],
+            data["market_caps"],
+            data["total_volumes"]
+        ):
+            # Converte timestamp em milissegundos para objeto datetime
+            data_obj = datetime.fromtimestamp(timestamp / 1000)
+            day = data_obj.strftime("%Y%m%d")
 
-            history.append({
-                "data": day,
-                "preco_usd": round(price, 2)
-            })
+            # Adiciona apenas a primeira ocorrência de cada dia
+            if day not in days_gone:
+                days_gone.add(day)
+                history.append({
+                    "data":       day,
+                    "preco_usd":  round(price, 2),
+                    "market_cap": round(market_cap, 2),
+                    "volume":     round(volume, 2)
+                })
+
+        return history
+
+    except requests.exceptions.HTTPError as e:
+        # Erros de resposta HTTP (ex: 404 moeda não encontrada, 429 rate limit)
+        logger_extract.error("Erro HTTP em last_30_days: %s", e)
+
+    except requests.exceptions.ConnectionError:
+        # Falha de rede ou DNS — servidor inacessível
+        logger_extract.error("Falha de conexão em last_30_days")
+
+    except requests.exceptions.Timeout:
+        # Requisição excedeu o tempo limite de 10 segundos
+        logger_extract.error("Timeout em last_30_days")
+
+    except Exception as e:
+        # Captura qualquer erro não previsto e registra com stack trace completo
+        logger_extract.exception("Erro inesperado em last_30_days: %s", e)
+
+    return []  # Retorno seguro em qualquer cenário de falha
 
 def extract_crypto_list(base: str) -> None:
     """Extrai lista de todas as criptomoedas disponíveis na CoinGecko."""
@@ -366,4 +418,7 @@ def main_extract():
 
 
 if __name__ == "__main__":
-    main_extract()
+    # main_extract()
+    a = last_30_days('bitcoin')
+    for value in a:
+        print(value)
