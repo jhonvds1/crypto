@@ -4,6 +4,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from google.cloud import bigquery
+from google.cloud.exceptions import NotFound
 
 # URL base da API da CoinGecko
 BASE = "https://api.coingecko.com/api/v3"
@@ -17,7 +18,7 @@ logging.basicConfig(
 logger_extract = logging.getLogger("EXTRACT")
 
 
-def load_bq(data: dict | list, filename: str) -> None:
+def load_bq(data: dict | list, filename: str, client: bigquery.Client) -> None:
     """
     Carrega dados (dict ou list) para o BigQuery.
     Adiciona timestamp de ingestão e faz load direto na tabela.
@@ -38,9 +39,6 @@ def load_bq(data: dict | list, filename: str) -> None:
     table_id = f"coingecko-494900.bronze.{filename}"
 
     logger_extract.info("Iniciando carga de : %s", table_id)
-
-    # Cliente do BigQuery
-    client = bigquery.Client()
 
     # Cria dataset caso não exista
     client.create_dataset(dataset, exists_ok=True)
@@ -71,23 +69,16 @@ def load_bq(data: dict | list, filename: str) -> None:
 
     logger_extract.info("Tabela salva: %s", table_id)
 
-def last_30_days(moeda: str):
+def last_30_days(moeda: str, client: bigquery.Client) -> None:
     """
     Busca o histórico dos últimos 30 dias de uma criptomoeda via CoinGecko API.
-
     Args:
         moeda (str): ID da criptomoeda na CoinGecko (ex: "bitcoin", "ethereum").
-
-    Returns:
-        list[dict]: Lista com um registro por dia contendo:
-                    - 'data' (str): data no formato DD-MM-YYYY
-                    - 'preco_usd' (float): preço de fechamento do dia em USD
-                    - 'market_cap' (float): capitalização de mercado em USD
-                    - 'volume' (float): volume negociado em USD
-                    Retorna lista vazia em caso de erro.
     """
     dias = 30
     moeda_fiat = "usd"
+
+    logger_extract.info("Iniciando coleta de %d dias para '%s'", dias, moeda)
 
     # Monta a URL da CoinGecko para o endpoint de histórico de mercado
     url = (
@@ -97,6 +88,7 @@ def last_30_days(moeda: str):
     )
 
     try:
+        logger_extract.debug("Requisitando URL: %s", url)
         response = requests.get(url, timeout=10)
 
         # Lança exceção para status HTTP de erro (4xx, 5xx)
@@ -132,7 +124,9 @@ def last_30_days(moeda: str):
                     "volume":     round(volume, 2)
                 })
 
-        return history
+        logger_extract.info("Coleta concluída — %d registros extraídos para '%s'", len(history), moeda)
+
+        load_bq(history, "current_market", client)
 
     except requests.exceptions.HTTPError as e:
         # Erros de resposta HTTP (ex: 404 moeda não encontrada, 429 rate limit)
@@ -147,10 +141,7 @@ def last_30_days(moeda: str):
         logger_extract.error("Timeout em last_30_days")
 
     except Exception as e:
-        # Captura qualquer erro não previsto e registra com stack trace completo
         logger_extract.exception("Erro inesperado em last_30_days: %s", e)
-
-    return []  # Retorno seguro em qualquer cenário de falha
 
 def extract_crypto_list(base: str) -> None:
     """Extrai lista de todas as criptomoedas disponíveis na CoinGecko."""
@@ -187,8 +178,7 @@ def extract_crypto_list(base: str) -> None:
     except Exception as e:
         logger_extract.exception("Erro inesperado em extract_crypto_list: %s", e)
 
-
-def extract_current_market(base: str) -> None:
+def extract_current_market(base: str, client: bigquery.Client) -> None:
     """
     Extrai mercado atual das top 100 criptomoedas por market cap.
     """
@@ -215,7 +205,7 @@ def extract_current_market(base: str) -> None:
         data = response.json()
 
         # Envia para BigQuery
-        load_bq(data, "current_market")
+        load_bq(data, "current_market", client)
 
         logger_extract.info("Extração concluída: current_market (%d itens)", len(data))
 
@@ -230,7 +220,6 @@ def extract_current_market(base: str) -> None:
 
     except Exception as e:
         logger_extract.exception("Erro inesperado em extract_current_market: %s", e)
-
 
 def extract_price_history(base: str, coin_id: str) -> None:
     """
@@ -270,7 +259,6 @@ def extract_price_history(base: str, coin_id: str) -> None:
     except Exception as e:
         logger_extract.exception("Erro inesperado em extract_price_history (%s): %s", coin_id, e)
 
-
 def extract_overview(base: str) -> None:
     """Extrai dados globais do mercado de criptomoedas."""
 
@@ -301,8 +289,7 @@ def extract_overview(base: str) -> None:
     except Exception as e:
         logger_extract.exception("Erro inesperado em extract_overview: %s", e)
 
-
-def extract_trending(base: str) -> None:
+def extract_trending(base: str, client: bigquery.Client) -> None:
     """Extrai criptomoedas em tendência nas últimas 24h."""
 
     url = f"{base}/search/trending"
@@ -316,7 +303,7 @@ def extract_trending(base: str) -> None:
 
         data = response.json()
 
-        load_bq(data, "trending")
+        load_bq(data, "trending", client)
 
         logger_extract.info("Extração concluída: trending")
 
@@ -331,7 +318,6 @@ def extract_trending(base: str) -> None:
 
     except Exception as e:
         logger_extract.exception("Erro inesperado em extract_trending: %s", e)
-
 
 def extract_coin_details(base: str, coin_id: str) -> None:
     """
@@ -366,7 +352,6 @@ def extract_coin_details(base: str, coin_id: str) -> None:
 
     except Exception as e:
         logger_extract.exception("Erro inesperado em extract_coin_details (%s): %s", coin_id, e)
-
 
 def extract_simple_price(base: str) -> None:
     """Extrai preço atual de Bitcoin e Ethereum."""
@@ -403,22 +388,24 @@ def extract_simple_price(base: str) -> None:
     except Exception as e:
         logger_extract.exception("Erro inesperado em extract_simple_price: %s", e)
 
-
 def main_extract():
     """Executa pipeline de extração."""
 
     base = BASE
 
-    logger_extract.info("Extração iniciada")
+    client = bigquery.Client()
 
-    extract_current_market(base)
-    extract_trending(base)
+    logger_extract.info("Extração iniciada")
+    try:
+        client.get_dataset("coingecko-494900.bronze")
+        extract_current_market(base, client)
+    except NotFound:
+        last_30_days("bitcoin", client)
+    finally:
+        extract_trending(base, client)
 
     logger_extract.info("Extração finalizada com sucesso")
 
 
 if __name__ == "__main__":
-    # main_extract()
-    a = last_30_days('bitcoin')
-    for value in a:
-        print(value)
+    main_extract()
