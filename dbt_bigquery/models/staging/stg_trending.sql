@@ -46,11 +46,11 @@ treated AS (
         TRIM(id) AS id,          -- remove espaços do id
         INITCAP(name) AS name,   -- padroniza nome (Title Case)
         score                     -- mantém score de trending
-    FROM unnested
+    FROM deduplicated
     WHERE id IS NOT NULL
 
 )
 
 -- seleção final
 SELECT * 
-FROM deduplicated
+FROM treated

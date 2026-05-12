@@ -4,7 +4,7 @@ WITH stg_current_market AS (
         *,
         
         -- cria uma chave de data no formato YYYYMMDD a partir de last_updated
-        CAST(FORMAT_DATE('%Y%m%d', DATE(data)) AS INT64) AS id_data
+        CAST(FORMAT_DATE('%Y%m%d', DATE(last_updated)) AS INT64) AS id_data
 
     FROM {{ref('stg_current_market')}}    
 ),
