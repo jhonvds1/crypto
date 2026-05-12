@@ -119,11 +119,12 @@ def last_30_days(moeda: str, client: bigquery.Client) -> None:
             if day not in days_gone:
                 days_gone.add(day)
                 history.append({
-                    "data":       day,
-                    "preco_usd":  round(price, 2),
+                    "last_update":       day,
+                    "current_price":  round(price, 2),
                     "market_cap": int(round(market_cap, 2)),
-                    "volume":     round(volume, 2),
-                    "id": "bitcoin"
+                    "total_volume":     round(volume, 2),
+                    "id": "bitcoin",
+                    "name": "Bitcoin"
                 })
 
         logger_extract.info("Coleta concluída — %d registros extraídos para '%s'", len(history), moeda)
