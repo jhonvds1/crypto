@@ -402,7 +402,6 @@ def main_extract():
 
     logger_extract.info("Extração iniciada")
 
-    # extract_current_market(base, client)
     try:
         client.get_dataset("coingecko-494900.bronze")
         extract_current_market(base, client)

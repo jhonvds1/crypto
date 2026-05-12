@@ -6,3 +6,4 @@ logs/
 steps.md
 data/
 credentials/
+.user.yml
