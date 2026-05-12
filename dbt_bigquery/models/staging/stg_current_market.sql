@@ -11,7 +11,7 @@ deduplicated AS(
     FROM (
         SELECT 
             *,
-            ROW_NUMBER() OVER (PARTITION BY id ORDER BY id asc) AS rn
+            ROW_NUMBER() OVER (PARTITION BY id, DATE(last_updated) ORDER BY last_updated DESC) AS rn
             -- cria um ranking por id (como não há critério melhor, usa id mesmo)
         FROM source
         WHERE id IS NOT NULL  -- remove registros sem id
