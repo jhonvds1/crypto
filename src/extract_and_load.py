@@ -121,7 +121,8 @@ def last_30_days(moeda: str, client: bigquery.Client) -> None:
                     "data":       day,
                     "preco_usd":  round(price, 2),
                     "market_cap": round(market_cap, 2),
-                    "volume":     round(volume, 2)
+                    "volume":     round(volume, 2),
+                    "id": "bitcoin"
                 })
 
         logger_extract.info("Coleta concluída — %d registros extraídos para '%s'", len(history), moeda)
@@ -401,6 +402,7 @@ def main_extract():
         extract_current_market(base, client)
     except NotFound:
         last_30_days("bitcoin", client)
+        extract_current_market(base, client)
     finally:
         extract_trending(base, client)
 

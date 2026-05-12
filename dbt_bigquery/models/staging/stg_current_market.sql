@@ -27,20 +27,19 @@ RENAMED AS (
         
         CAST(market_cap AS INT64) AS market_cap,  -- converte market cap para inteiro
         
-        current_price,  -- mantém preço atual
+        preco_usd AS current_price,  -- mantém preço atual
         
-        market_cap_rank,  -- ranking de market cap
+        RANK() OVER (ORDER BY market_cap DESC) AS market_cap_rank,  -- ranking de market cap
         
-        CAST(total_volume AS INT64) AS total_volume,  -- converte volume para inteiro
+        CAST(volume AS INT64) AS total_volume,  -- converte volume para inteiro
         
-        DATE(last_updated) AS last_updated,  -- converte timestamp para date
+        DATE(data) AS data,  -- converte timestamp para date
         
-        price_change_percentage_24h  -- variação percentual 24h
     FROM deduplicated
 
     -- filtros de qualidade de dados
     WHERE id IS NOT NULL 
-    AND last_updated IS NOT NULL
+    AND data IS NOT NULL
     AND current_price >= 0.0  -- remove valores inválidos de preço
 )
 

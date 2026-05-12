@@ -4,7 +4,7 @@ WITH stg_current_market AS (
         *,
         
         -- cria uma chave de data no formato YYYYMMDD a partir de last_updated
-        CAST(FORMAT_DATE('%Y%m%d', DATE(last_updated)) AS INT64) AS id_data
+        CAST(FORMAT_DATE('%Y%m%d', DATE(data)) AS INT64) AS id_data
 
     FROM {{ref('stg_current_market')}}    
 ),
@@ -39,7 +39,6 @@ final AS (
         cm.current_price,             -- métrica: preço atual
         cm.market_cap,               -- métrica: market cap
         cm.market_cap_rank,          -- ranking de market cap
-        cm.price_change_percentage_24h, -- variação 24h
         cm.total_volume,             -- volume total
         
         tr.score AS trend_score      -- score de trending da moeda
