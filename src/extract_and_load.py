@@ -46,7 +46,8 @@ def load_bq(data: dict | list, filename: str, client: bigquery.Client) -> None:
     # Configuração do job de load
     job_config = bigquery.LoadJobConfig(
         autodetect=True,              # BigQuery tenta inferir schema automaticamente
-        write_disposition="WRITE_TRUNCATE"  # sobrescreve tabela a cada execução
+        write_disposition="WRITE_APPEND",  # sobrescreve tabela a cada execução
+        schema_update_options=[bigquery.SchemaUpdateOption.ALLOW_FIELD_ADDITION]
     )
 
     # Adiciona coluna de ingestão em cada registro
@@ -120,7 +121,7 @@ def last_30_days(moeda: str, client: bigquery.Client) -> None:
                 history.append({
                     "data":       day,
                     "preco_usd":  round(price, 2),
-                    "market_cap": round(market_cap, 2),
+                    "market_cap": int(round(market_cap, 2)),
                     "volume":     round(volume, 2),
                     "id": "bitcoin"
                 })
@@ -204,6 +205,8 @@ def extract_current_market(base: str, client: bigquery.Client) -> None:
 
         # Converte resposta
         data = response.json()
+
+        # print(json.dumps(data, indent=4, ensure_ascii=True))
 
         # Envia para BigQuery
         load_bq(data, "current_market", client)
@@ -397,6 +400,8 @@ def main_extract():
     client = bigquery.Client()
 
     logger_extract.info("Extração iniciada")
+
+    # extract_current_market(base, client)
     try:
         client.get_dataset("coingecko-494900.bronze")
         extract_current_market(base, client)
