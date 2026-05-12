@@ -119,7 +119,7 @@ def last_30_days(moeda: str, client: bigquery.Client) -> None:
             if day not in days_gone:
                 days_gone.add(day)
                 history.append({
-                    "last_update":       day,
+                    "last_updated": datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc).isoformat(),
                     "current_price":  round(price, 2),
                     "market_cap": int(round(market_cap, 2)),
                     "total_volume":     round(volume, 2),
