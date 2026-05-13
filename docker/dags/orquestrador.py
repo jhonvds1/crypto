@@ -25,7 +25,7 @@ with DAG(
 
         task_id='extract_load_bq',       # nome da task no Airflow
 
-        image='extract_and_load:1.5',    # imagem Docker do pipeline Python
+        image='extract_and_load:1.6',    # imagem Docker do pipeline Python
 
         api_version="auto",
 
@@ -62,7 +62,7 @@ with DAG(
 
         task_id='dbt_run',               # task de transformação dbt
 
-        image='dbt_coin:1.2',            # imagem com dbt instalado
+        image='dbt_run:1.5',            # imagem com dbt instalado
 
         command='dbt run',               # executa todos os models
 
