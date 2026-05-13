@@ -12,7 +12,7 @@ deduplicated AS(
         SELECT 
             *,
             ROW_NUMBER() OVER (PARTITION BY id, DATE(last_updated) ORDER BY last_updated DESC) AS rn
-            -- cria um ranking por id (como não há critério melhor, usa id mesmo)
+            -- mantém o registro mais recente por id dentro de cada dia
         FROM source
         WHERE id IS NOT NULL  -- remove registros sem id
     )
@@ -29,18 +29,18 @@ RENAMED AS (
         
         current_price,  -- mantém preço atual
         
-        RANK() OVER (ORDER BY market_cap DESC) AS market_cap_rank,  -- ranking de market cap
+        DENSE_RANK() OVER (ORDER BY market_cap DESC) AS market_cap_rank,  -- ranking de market cap
         
         CAST(total_volume AS INT64) AS total_volume,  -- converte volume para inteiro
         
-        DATE(last_updated) AS last_updated,  -- converte timestamp para date
+        DATE(last_updated) AS last_updated  -- converte timestamp para date
         
     FROM deduplicated
 
     -- filtros de qualidade de dados
     WHERE id IS NOT NULL 
     AND last_updated IS NOT NULL
-    AND current_price >= 0.0  -- remove valores inválidos de preço
+    AND current_price > 0.0  -- remove valores inválidos de preço
 )
 
 -- seleção final da tabela limpa e tratada

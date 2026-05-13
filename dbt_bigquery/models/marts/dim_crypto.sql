@@ -7,7 +7,7 @@ WITH stg_current_market AS (
 -- CTE final onde você seleciona apenas as colunas desejadas
 final AS (
     SELECT
-        id,    -- identificador da criptomoeda
+        DISTINCT id,    -- identificador da criptomoeda
         name   -- nome da criptomoeda
     FROM stg_current_market
 )
