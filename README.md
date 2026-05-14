@@ -44,7 +44,7 @@ Dimensional Models (dim_time, dim_crypto)
       ↓
 Fact Table (current_market)
       ↓
-Dashboard (Power BI / Tableau - em definição)
+Dashboard MetaBase
 ```
 
 ## ⚙️ Tecnologias utilizadas  
@@ -55,7 +55,8 @@ Docker Compose
 dbt (BigQuery adapter)  
 Google BigQuery  
 CoinGecko API  
-SQL (BigQuery Standard SQL)  
+SQL (BigQuery Standard SQL)    
+MetaBase
 
 ```
 crypto/
@@ -82,6 +83,8 @@ crypto/
 ├── credentials/
 │   └── bigquery_key.json
 │
+├── metabase/
+│   └── docker-compose.yaml
 ├── diagrama.png
 ├── requirements.txt
 ├── .gitignore
@@ -157,20 +160,9 @@ Roda a cada:
 ⚪ Silver: staging (limpeza e tratamento)  
 🟡 Gold: modelos analíticos (dimensões e fatos)  
 
-## 📈 BI (em desenvolvimento)
+## 📈 BI em MetaBase
 
-Ferramenta a definir:
-
-Power BI
-ou Tableau
-
-Possíveis dashboards:
-
-preço de criptos
-market cap
-trending coins
-volume
-variação 24h
+dashboard_final.pdf
 
 ## 💡 Por que esse projeto importa?
 
